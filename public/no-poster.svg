@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+  <rect width="300" height="450" fill="#1a1a2e"/>
+  <g transform="translate(150, 200)" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-30 -20v40M30 -20v40M-40 -12h8m52 0h8M-40 0h80M-40 12h8m52 0h8M-36 20h72a4 4 0 004-4v-32a4 4 0 00-4-4h-72a4 4 0 00-4 4v32a4 4 0 004 4z"/>
+  </g>
+  <text x="150" y="260" text-anchor="middle" fill="#444" font-family="Arial, sans-serif" font-size="14">No Poster Available</text>
+</svg>
