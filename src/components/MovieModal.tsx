@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { MovieDetail, WatchProviders, Movie, GENRE_MAP, SearchResult } from "@/types";
-import { getImageUrl, getBackdropUrl } from "@/lib/tmdb";
+import { getImageUrl, getBackdropUrl, withAffiliate } from "@/lib/tmdb";
 import { formatTimestamp } from "@/lib/search";
 
 interface MovieModalProps {
@@ -341,7 +341,7 @@ export default function MovieModal({ movieId, fallback, onClose }: MovieModalPro
                         )}
                         {data.providers.link && (
                           <a
-                            href={data.providers.link}
+                            href={withAffiliate(data.providers.link)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-purple-400 hover:text-purple-300 text-xs mt-1"

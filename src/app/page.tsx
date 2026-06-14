@@ -12,6 +12,8 @@ import UploadSection from "@/components/UploadSection";
 import LinkSection from "@/components/LinkSection";
 import TypeSearch from "@/components/TypeSearch";
 import MovieModal from "@/components/MovieModal";
+import WatchlistPanel from "@/components/WatchlistPanel";
+import { useWatchlist } from "@/hooks/useWatchlist";
 
 export default function Home() {
   const [mode, setMode] = useState<AppMode>("listen");
@@ -19,7 +21,10 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const { items: watchlistItems } = useWatchlist();
 
   const {
     isListening,
@@ -102,7 +107,21 @@ export default function Home() {
   return (
     <main className="relative z-10 min-h-screen flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-center pt-8 pb-2 px-4">
+      <header className="relative flex items-center justify-center pt-8 pb-2 px-4">
+        <button
+          onClick={() => setWatchlistOpen(true)}
+          className="absolute right-4 top-8 flex items-center gap-1.5 rounded-lg bg-gray-900/60 border border-gray-800 px-3 py-2 text-sm text-gray-300 hover:text-white hover:border-purple-500/40 transition-colors"
+          aria-label="Open watchlist"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+          {watchlistItems.length > 0 && (
+            <span className="text-xs bg-purple-600 text-white rounded-full px-1.5 min-w-5 text-center">
+              {watchlistItems.length}
+            </span>
+          )}
+        </button>
         <div className="text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -296,10 +315,23 @@ export default function Home() {
       </footer>
 
       {/* Movie Detail Modal */}
+      <WatchlistPanel
+        open={watchlistOpen}
+        onClose={() => setWatchlistOpen(false)}
+        onSelect={(id) => {
+          setSelectedResult(null);
+          setSelectedMovieId(id);
+          setWatchlistOpen(false);
+        }}
+      />
+
       <MovieModal
-        movieId={selectedResult?.movie.id ?? null}
+        movieId={selectedResult?.movie.id ?? selectedMovieId}
         fallback={selectedResult}
-        onClose={() => setSelectedResult(null)}
+        onClose={() => {
+          setSelectedResult(null);
+          setSelectedMovieId(null);
+        }}
       />
     </main>
   );

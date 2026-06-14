@@ -7,9 +7,13 @@
  *   npx tsx scripts/build-subtitle-index.ts --limit 500     # cap movie count
  */
 
-import "dotenv/config";
+import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 import Database from "better-sqlite3";
 import { parseSrt } from "../src/lib/srt-parser";
 import { movieQuotes } from "../src/lib/quotes-db";

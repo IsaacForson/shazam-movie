@@ -41,7 +41,7 @@ declare global {
   }
 }
 
-export function useSpeechRecognition() {
+export function useSpeechRecognition(lang: string = "en-US") {
   const [state, setState] = useState<SpeechRecognitionState>({
     isListening: false,
     transcript: "",
@@ -79,7 +79,7 @@ export function useSpeechRecognition() {
 
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.lang = lang;
     recognition.maxAlternatives = 1;
 
     transcriptRef.current = "";
@@ -152,7 +152,7 @@ export function useSpeechRecognition() {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [state.isSupported]);
+  }, [state.isSupported, lang]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {

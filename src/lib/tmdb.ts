@@ -21,6 +21,20 @@ export function getBackdropUrl(path: string | null): string {
   return `${TMDB_IMAGE_BASE}/w1280${path}`;
 }
 
+export function withAffiliate(url: string | undefined | null): string {
+  if (!url) return "";
+  const tag = process.env.NEXT_PUBLIC_AFFILIATE_TAG;
+  if (!tag) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("utm_source", tag);
+    parsed.searchParams.set("ref", tag);
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 export async function searchMovies(query: string): Promise<Movie[]> {
   const apiKey = getApiKey();
   const url = `${TMDB_BASE_URL}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`;

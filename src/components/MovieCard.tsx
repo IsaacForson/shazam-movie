@@ -3,8 +3,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { SearchResult, GENRE_MAP } from "@/types";
-import { getImageUrl } from "@/lib/tmdb";
+import { getImageUrl, withAffiliate } from "@/lib/tmdb";
 import { formatTimestamp } from "@/lib/search";
+import { useWatchlist } from "@/hooks/useWatchlist";
 
 interface MovieCardProps {
   result: SearchResult;
@@ -13,6 +14,8 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({ result, index, onClick }: MovieCardProps) {
+  const { isSaved, toggle } = useWatchlist();
+  const saved = isSaved(result.movie.id);
   const { movie, confidence, matchSource, matchedLine, timestampMs, watchProviders } = result;
   const year = movie.release_date?.split("-")[0] || "N/A";
   const genres = movie.genre_ids
@@ -73,10 +76,24 @@ export default function MovieCard({ result, index, onClick }: MovieCardProps) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-        <div className="absolute top-2 right-2 flex gap-1.5">
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${confidenceColor}`}>
             {confidenceLabel}
           </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle(movie);
+            }}
+            aria-label={saved ? "Remove from watchlist" : "Add to watchlist"}
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+              saved ? "bg-purple-600 text-white" : "bg-black/60 text-gray-300 hover:text-white"
+            }`}
+          >
+            <svg className="w-3.5 h-3.5" fill={saved ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+          </button>
         </div>
 
         {timestampMs != null && timestampMs > 0 && (
@@ -130,7 +147,7 @@ export default function MovieCard({ result, index, onClick }: MovieCardProps) {
               ))}
               {watchProviders?.link && (
                 <a
-                  href={watchProviders.link}
+                  href={withAffiliate(watchProviders.link)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
