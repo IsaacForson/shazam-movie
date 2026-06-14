@@ -14,6 +14,7 @@ import LinkSection from "@/components/LinkSection";
 import TypeSearch from "@/components/TypeSearch";
 import MovieModal from "@/components/MovieModal";
 import WatchlistPanel from "@/components/WatchlistPanel";
+import SearchModeToggle, { SearchMode } from "@/components/SearchModeToggle";
 
 export default function Home() {
   const [mode, setMode] = useState<AppMode>("listen");
@@ -24,7 +25,13 @@ export default function Home() {
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchMode, setSearchMode] = useState<SearchMode>("quote");
   const { items: watchlistItems } = useWatchlist();
+  const searchModeRef = useRef<SearchMode>("quote");
+
+  useEffect(() => {
+    searchModeRef.current = searchMode;
+  }, [searchMode]);
 
   const {
     isListening,
@@ -49,7 +56,9 @@ export default function Home() {
     setSearchError(null);
 
     try {
-      const res = await fetch("/api/identify", {
+      const endpoint =
+        searchModeRef.current === "describe" ? "/api/describe" : "/api/identify";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text.trim() }),
@@ -102,12 +111,29 @@ export default function Home() {
     resetTranscript();
   };
 
-  const modeCopy: Record<AppMode, { kicker: string; line: string }> = {
+  const handleSearchModeChange = (next: SearchMode) => {
+    setSearchMode(next);
+    setResults([]);
+    setHasSearched(false);
+    setSearchError(null);
+    lastSearchedRef.current = "";
+  };
+
+  const quoteCopy: Record<AppMode, { kicker: string; line: string }> = {
     listen: { kicker: "Hold it up", line: "Let the room do the talking." },
-    upload: { kicker: "Drop a clip", line: "We'll listen to it for you." },
+    upload: { kicker: "Drop a clip", line: "Spoken dialogue or narration — we'll listen." },
     link: { kicker: "Paste a link", line: "From the feed, straight to the title." },
     type: { kicker: "Type a line", line: "However you half-remember it." },
   };
+
+  const describeCopy: Record<AppMode, { kicker: string; line: string }> = {
+    listen: { kicker: "Tell the plot", line: "Say what happens — we'll find the film." },
+    upload: { kicker: "Drop a recap clip", line: "A narrated plot? We'll match the meaning." },
+    link: { kicker: "Paste a recap link", line: "An explainer or recap — we'll name it." },
+    type: { kicker: "Describe it", line: "The plot or scene, in your own words." },
+  };
+
+  const copy = searchMode === "describe" ? describeCopy[mode] : quoteCopy[mode];
 
   return (
     <main className="min-h-screen">
@@ -168,13 +194,14 @@ export default function Home() {
           {/* Left: mode copy */}
           <div className="lg:sticky lg:top-10">
             <p className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
-              {modeCopy[mode].kicker}
+              {copy.kicker}
             </p>
-            <p className="text-soft mt-2 max-w-xs">{modeCopy[mode].line}</p>
+            <p className="text-soft mt-2 max-w-xs">{copy.line}</p>
           </div>
 
           {/* Right: the active input */}
           <div className="min-h-56">
+            <SearchModeToggle value={searchMode} onChange={handleSearchModeChange} />
             <AnimatePresence mode="wait">
               {mode === "listen" && (
                 <motion.div
@@ -233,7 +260,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
                 >
-                  <TypeSearch onSearch={identifyMovie} isSearching={isSearching} />
+                  <TypeSearch onSearch={identifyMovie} isSearching={isSearching} mode={searchMode} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -293,8 +320,9 @@ export default function Home() {
           <div className="border-t border-line pt-12 text-center">
             <p className="font-serif text-3xl text-ink">No film found.</p>
             <p className="text-soft text-sm mt-2 max-w-sm mx-auto">
-              The line may not be in the index yet. Try a longer or more distinctive
-              piece of dialogue.
+              {searchMode === "describe"
+                ? "Not sure on that one. Try adding more detail — characters, setting, or a key scene."
+                : "The line may not be in the index yet. Try a longer or more distinctive piece of dialogue."}
             </p>
           </div>
         )}

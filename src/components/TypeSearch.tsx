@@ -5,9 +5,10 @@ import { useState } from "react";
 interface TypeSearchProps {
   onSearch: (text: string) => void;
   isSearching: boolean;
+  mode?: "quote" | "describe";
 }
 
-export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
+export default function TypeSearch({ onSearch, isSearching, mode = "quote" }: TypeSearchProps) {
   const [text, setText] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -15,14 +16,27 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
     if (text.trim().length > 2) onSearch(text.trim());
   };
 
-  const examples = [
-    "I'm gonna make him an offer he can't refuse",
-    "Why so serious",
-    "May the force be with you",
-    "You shall not pass",
-    "I see dead people",
-    "Life is like a box of chocolates",
-  ];
+  const describing = mode === "describe";
+
+  const placeholder = describing
+    ? "A man is locked in a high-tech prison and has to break out…"
+    : "“Well, nobody's perfect.”";
+
+  const examples = describing
+    ? [
+        "A man relives the same day over and over in a small snowy town",
+        "Toys come to life when their owner leaves the room",
+        "A team enters dreams to plant an idea",
+        "A shark terrorizes a small beach town one summer",
+      ]
+    : [
+        "I'm gonna make him an offer he can't refuse",
+        "Why so serious",
+        "May the force be with you",
+        "You shall not pass",
+        "I see dead people",
+        "Life is like a box of chocolates",
+      ];
 
   return (
     <div className="w-full space-y-7">
@@ -31,12 +45,12 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="“Well, nobody's perfect.”"
+            placeholder={placeholder}
             className="w-full bg-transparent p-5 font-serif text-xl text-ink placeholder:text-soft/60 focus:outline-none resize-none"
             rows={4}
           />
           <div className="flex items-center justify-between border-t border-line px-4 py-3">
-            <span className="label text-soft">Any line, any film</span>
+            <span className="label text-soft">{describing ? "The plot, in your words" : "Any line, any film"}</span>
             <button
               type="submit"
               disabled={text.trim().length < 3 || isSearching}
@@ -52,7 +66,7 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
       </form>
 
       <div>
-        <p className="label text-soft mb-3">Or try one of these</p>
+        <p className="label text-soft mb-3">{describing ? "Or try a description" : "Or try one of these"}</p>
         <div className="flex flex-wrap gap-2">
           {examples.map((example) => (
             <button

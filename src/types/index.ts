@@ -48,7 +48,7 @@ export interface MovieQuote {
 export interface SearchResult {
   movie: Movie;
   confidence: number;
-  matchSource: "subtitles" | "quotes" | "tmdb" | "combined";
+  matchSource: "subtitles" | "quotes" | "tmdb" | "combined" | "description";
   matchedLine?: string;
   timestampMs?: number;
   watchProviders?: WatchProviders | null;
