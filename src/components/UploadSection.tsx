@@ -2,6 +2,9 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { extractAudioFromFile } from "@/lib/extract-audio";
+
+type TranscribeStatus = "idle" | "extracting" | "transcribing" | "done" | "error";
 
 interface UploadSectionProps {
   onTranscriptReady: (text: string) => void;
@@ -13,16 +16,56 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [manualText, setManualText] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [status, setStatus] = useState<TranscribeStatus>("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [transcript, setTranscript] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleFile = (f: File) => {
-    if (!f.type.startsWith("video/") && !f.type.startsWith("audio/")) {
-      return;
+  const transcribeFile = async (f: File) => {
+    setStatus("extracting");
+    setStatusMessage("Extracting audio from clip...");
+    setError(null);
+    setTranscript("");
+
+    try {
+      const audioBlob = await extractAudioFromFile(f, (msg) => {
+        if (msg.includes("time=")) setStatusMessage("Extracting audio...");
+      });
+
+      setStatus("transcribing");
+      setStatusMessage("Transcribing speech...");
+
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "audio.mp3");
+
+      const res = await fetch("/api/transcribe", { method: "POST", body: formData });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Transcription failed");
+      }
+
+      const data = await res.json();
+      setTranscript(data.transcript);
+      setManualText(data.transcript);
+      setStatus("done");
+      setStatusMessage("");
+      onTranscriptReady(data.transcript);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Transcription failed. Type dialogue manually.");
+      setStatusMessage("");
     }
+  };
+
+  const handleFile = (f: File) => {
+    if (!f.type.startsWith("video/") && !f.type.startsWith("audio/")) return;
     setFile(f);
     const url = URL.createObjectURL(f);
     setVideoUrl(url);
+    transcribeFile(f);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -32,7 +75,7 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
     if (f) handleFile(f);
   };
 
-  const handleSearch = () => {
+  const handleManualSearch = () => {
     if (manualText.trim().length > 2) {
       onTranscriptReady(manualText.trim());
     }
@@ -43,7 +86,13 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
     setFile(null);
     setVideoUrl(null);
     setManualText("");
+    setTranscript("");
+    setStatus("idle");
+    setError(null);
+    setStatusMessage("");
   };
+
+  const isProcessing = status === "extracting" || status === "transcribing";
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-4">
@@ -86,23 +135,14 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
             />
           </svg>
           <p className="text-gray-300 font-medium">Drop a video or audio clip here</p>
-          <p className="text-gray-500 text-sm mt-1">or click to browse</p>
+          <p className="text-gray-500 text-sm mt-1">We&apos;ll transcribe and identify automatically</p>
           <p className="text-gray-600 text-xs mt-3">Supports MP4, MOV, WebM, MP3, WAV</p>
         </div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-4"
-        >
-          {videoUrl && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          {videoUrl && file.type.startsWith("video/") && (
             <div className="rounded-xl overflow-hidden bg-black">
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                className="w-full max-h-64"
-              />
+              <video ref={videoRef} src={videoUrl} controls className="w-full max-h-64" />
             </div>
           )}
 
@@ -120,9 +160,29 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
             </button>
           </div>
 
+          {isProcessing && (
+            <div className="flex items-center gap-3 bg-purple-500/10 border border-purple-500/20 rounded-xl px-4 py-3">
+              <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin shrink-0" />
+              <span className="text-purple-300 text-sm">{statusMessage}</span>
+            </div>
+          )}
+
+          {transcript && status === "done" && (
+            <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4">
+              <p className="text-gray-500 text-xs mb-1">Transcript</p>
+              <p className="text-gray-200 text-sm">{transcript}</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-3">
+              <p className="text-yellow-400 text-sm">{error}</p>
+            </div>
+          )}
+
           <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-4 space-y-3">
             <p className="text-gray-400 text-sm">
-              Play the clip and type what you hear, or type any dialogue you recognize:
+              {error ? "Type the dialogue manually as a fallback:" : "Edit transcript or type dialogue:"}
             </p>
             <textarea
               value={manualText}
@@ -132,8 +192,8 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
               rows={3}
             />
             <button
-              onClick={handleSearch}
-              disabled={manualText.trim().length < 3 || isSearching}
+              onClick={handleManualSearch}
+              disabled={manualText.trim().length < 3 || isSearching || isProcessing}
               className="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-500 hover:to-indigo-500 transition-all"
             >
               {isSearching ? "Searching..." : "Identify Movie"}

@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { MovieDetail, WatchProviders, Movie, GENRE_MAP } from "@/types";
+import { MovieDetail, WatchProviders, Movie, GENRE_MAP, SearchResult } from "@/types";
 import { getImageUrl, getBackdropUrl } from "@/lib/tmdb";
+import { formatTimestamp } from "@/lib/search";
 
 interface MovieModalProps {
   movieId: number | null;
+  fallback?: SearchResult | null;
   onClose: () => void;
 }
 
@@ -17,7 +19,7 @@ interface MovieData {
   similar: Movie[];
 }
 
-export default function MovieModal({ movieId, onClose }: MovieModalProps) {
+export default function MovieModal({ movieId, fallback, onClose }: MovieModalProps) {
   const [data, setData] = useState<MovieData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,12 +34,13 @@ export default function MovieModal({ movieId, onClose }: MovieModalProps) {
     setError(null);
 
     fetch(`/api/movie/${movieId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
-        return res.json();
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Failed to fetch");
+        return json;
       })
       .then(setData)
-      .catch(() => setError("Could not load movie details"))
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load movie details"))
       .finally(() => setLoading(false));
   }, [movieId]);
 
@@ -85,12 +88,73 @@ export default function MovieModal({ movieId, onClose }: MovieModalProps) {
               </div>
             )}
 
-            {error && (
-              <div className="flex flex-col items-center justify-center py-24 px-6">
-                <p className="text-red-400 text-sm">{error}</p>
-                <button onClick={onClose} className="mt-4 text-gray-400 hover:text-white text-sm">
-                  Close
-                </button>
+            {error && !loading && (
+              <div className="p-6 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      {fallback?.movie.title || "Movie Details"}
+                    </h2>
+                    {fallback?.movie.release_date && (
+                      <p className="text-gray-400 text-sm mt-1">
+                        {fallback.movie.release_date.split("-")[0]}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {fallback?.matchedLine && (
+                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                    <p className="text-gray-500 text-xs mb-1">Matched dialogue</p>
+                    <p className="text-gray-200 text-sm italic">&ldquo;{fallback.matchedLine}&rdquo;</p>
+                    {fallback.timestampMs != null && fallback.timestampMs > 0 && (
+                      <p className="text-purple-400 text-xs mt-2 font-mono">
+                        at {formatTimestamp(fallback.timestampMs)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {fallback?.watchProviders?.flatrate && fallback.watchProviders.flatrate.length > 0 && (
+                  <div>
+                    <p className="text-gray-500 text-xs mb-2">Where to watch</p>
+                    <div className="flex flex-wrap gap-2">
+                      {fallback.watchProviders.flatrate.map((p) => (
+                        <span
+                          key={p.provider_id}
+                          className="text-purple-300 text-xs bg-purple-500/10 px-2 py-1 rounded"
+                        >
+                          {p.provider_name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                  <p className="text-yellow-400 text-sm">{error}</p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    Get a free API key at{" "}
+                    <a
+                      href="https://www.themoviedb.org/settings/api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:underline"
+                    >
+                      themoviedb.org/settings/api
+                    </a>
+                    , then set <code className="text-gray-400">TMDB_API_KEY</code> in{" "}
+                    <code className="text-gray-400">.env.local</code> and restart the dev server.
+                  </p>
+                </div>
               </div>
             )}
 

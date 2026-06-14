@@ -9,6 +9,7 @@ import TranscriptDisplay from "@/components/TranscriptDisplay";
 import ModeSelector from "@/components/ModeSelector";
 import MovieCard from "@/components/MovieCard";
 import UploadSection from "@/components/UploadSection";
+import LinkSection from "@/components/LinkSection";
 import TypeSearch from "@/components/TypeSearch";
 import MovieModal from "@/components/MovieModal";
 
@@ -17,7 +18,7 @@ export default function Home() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
   const {
@@ -186,6 +187,21 @@ export default function Home() {
             </motion.div>
           )}
 
+          {mode === "link" && (
+            <motion.div
+              key="link"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full max-w-xl mx-auto"
+            >
+              <LinkSection
+                onTranscriptReady={identifyMovie}
+                isSearching={isSearching}
+              />
+            </motion.div>
+          )}
+
           {mode === "type" && (
             <motion.div
               key="type"
@@ -249,7 +265,7 @@ export default function Home() {
                   key={result.movie.id}
                   result={result}
                   index={i}
-                  onClick={setSelectedMovieId}
+                  onClick={setSelectedResult}
                 />
               ))}
             </div>
@@ -280,7 +296,11 @@ export default function Home() {
       </footer>
 
       {/* Movie Detail Modal */}
-      <MovieModal movieId={selectedMovieId} onClose={() => setSelectedMovieId(null)} />
+      <MovieModal
+        movieId={selectedResult?.movie.id ?? null}
+        fallback={selectedResult}
+        onClose={() => setSelectedResult(null)}
+      />
     </main>
   );
 }

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchQuotes, getSearchKeywords, mergeResults } from "@/lib/search";
-import { searchMovies, getMoviesByIds } from "@/lib/tmdb";
-import { Movie } from "@/types";
+import { searchQuotes, mergeResults } from "@/lib/search";
+import { searchSubtitles } from "@/lib/subtitle-search";
+import { getMoviesByIds, getMovieWatchProviders } from "@/lib/tmdb";
+import { Movie, WatchProviders } from "@/types";
+
+function getRegion(request: NextRequest): string {
+  const region = request.nextUrl.searchParams.get("region");
+  if (region) return region.toUpperCase();
+  const country = request.headers.get("x-vercel-ip-country");
+  return country || "US";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,61 +22,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const quoteMatches = searchQuotes(text.trim());
+    const trimmed = text.trim();
+    const region = getRegion(request);
+
+    const subtitleMatches = searchSubtitles(trimmed);
+    const quoteMatches = searchQuotes(trimmed);
+
+    const movieIds = new Set<number>();
+    for (const m of subtitleMatches) movieIds.add(m.tmdbId);
+    for (const m of quoteMatches) movieIds.add(m.quote.movieId);
 
     let tmdbResults: Movie[] = [];
     const hasTmdbKey =
       process.env.TMDB_API_KEY &&
       !process.env.TMDB_API_KEY.startsWith("your_tmdb_");
 
-    if (hasTmdbKey) {
+    if (hasTmdbKey && movieIds.size > 0) {
       try {
-        const keywords = getSearchKeywords(text);
-        const searches: Promise<Movie[]>[] = [];
-
-        if (text.trim().length > 5) {
-          searches.push(searchMovies(text.trim().slice(0, 100)));
-        }
-
-        if (keywords.length >= 2) {
-          const keywordQuery = keywords.slice(0, 5).join(" ");
-          searches.push(searchMovies(keywordQuery));
-        }
-
-        const quoteMovieIds = quoteMatches
-          .slice(0, 5)
-          .map((m) => m.quote.movieId);
-        if (quoteMovieIds.length > 0) {
-          searches.push(getMoviesByIds(quoteMovieIds));
-        }
-
-        const allResults = await Promise.all(searches);
-        const seen = new Set<number>();
-        for (const results of allResults) {
-          for (const movie of results) {
-            if (!seen.has(movie.id)) {
-              seen.add(movie.id);
-              tmdbResults.push(movie);
-            }
-          }
-        }
+        tmdbResults = await getMoviesByIds([...movieIds].slice(0, 10));
       } catch (err) {
-        console.error("TMDB search error:", err);
-      }
-    } else if (quoteMatches.length > 0) {
-      try {
-        const ids = quoteMatches.map((m) => m.quote.movieId);
-        tmdbResults = await getMoviesByIds(ids);
-      } catch {
-        // TMDB not available, will use quote data only
+        console.error("TMDB fetch error:", err);
       }
     }
 
-    const results = mergeResults(quoteMatches, tmdbResults);
+    const watchProvidersMap = new Map<number, WatchProviders | null>();
+    if (hasTmdbKey && tmdbResults.length > 0) {
+      const topIds = tmdbResults.slice(0, 3).map((m) => m.id);
+      await Promise.all(
+        topIds.map(async (id) => {
+          try {
+            const providers = await getMovieWatchProviders(id, region);
+            watchProvidersMap.set(id, providers);
+          } catch {
+            watchProvidersMap.set(id, null);
+          }
+        })
+      );
+    }
+
+    const results = mergeResults(
+      subtitleMatches,
+      quoteMatches,
+      tmdbResults,
+      watchProvidersMap
+    );
 
     return NextResponse.json({
       results,
-      transcript: text.trim(),
+      transcript: trimmed,
       matchCount: results.length,
     });
   } catch (error) {

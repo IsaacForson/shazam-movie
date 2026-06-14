@@ -48,7 +48,10 @@ export interface MovieQuote {
 export interface SearchResult {
   movie: Movie;
   confidence: number;
-  matchSource: "quotes" | "tmdb" | "combined";
+  matchSource: "subtitles" | "quotes" | "tmdb" | "combined";
+  matchedLine?: string;
+  timestampMs?: number;
+  watchProviders?: WatchProviders | null;
 }
 
 export interface TranscriptionState {
@@ -58,7 +61,7 @@ export interface TranscriptionState {
   error: string | null;
 }
 
-export type AppMode = "listen" | "upload" | "type";
+export type AppMode = "listen" | "upload" | "type" | "link";
 
 export interface TMDBSearchResponse {
   page: number;

@@ -1,6 +1,7 @@
 import Fuse from "fuse.js";
 import { movieQuotes } from "./quotes-db";
-import { MovieQuote, SearchResult, Movie } from "@/types";
+import { MovieQuote, SearchResult, Movie, WatchProviders } from "@/types";
+import { SubtitleMatch } from "./subtitle-search";
 
 const fuse = new Fuse(movieQuotes, {
   keys: ["quote"],
@@ -63,19 +64,69 @@ export function getSearchKeywords(text: string): string[] {
 }
 
 export function mergeResults(
+  subtitleMatches: SubtitleMatch[],
   quoteMatches: QuoteMatch[],
-  tmdbResults: Movie[]
+  tmdbResults: Movie[],
+  watchProvidersMap?: Map<number, WatchProviders | null>
 ): SearchResult[] {
   const results: SearchResult[] = [];
   const seen = new Set<number>();
 
+  for (const match of subtitleMatches) {
+    const tmdbMovie = tmdbResults.find((m) => m.id === match.tmdbId);
+    if (tmdbMovie) {
+      results.push({
+        movie: tmdbMovie,
+        confidence: match.confidence,
+        matchSource: "subtitles",
+        matchedLine: match.matchedLine,
+        timestampMs: match.startMs,
+        watchProviders: watchProvidersMap?.get(match.tmdbId) ?? undefined,
+      });
+      seen.add(tmdbMovie.id);
+    } else {
+      results.push({
+        movie: {
+          id: match.tmdbId,
+          title: match.title,
+          overview: "",
+          poster_path: null,
+          backdrop_path: null,
+          release_date: "",
+          vote_average: 0,
+          vote_count: 0,
+          genre_ids: [],
+          popularity: 0,
+          original_language: "en",
+        },
+        confidence: match.confidence,
+        matchSource: "subtitles",
+        matchedLine: match.matchedLine,
+        timestampMs: match.startMs,
+      });
+      seen.add(match.tmdbId);
+    }
+  }
+
   for (const match of quoteMatches) {
+    if (seen.has(match.quote.movieId)) {
+      const existing = results.find((r) => r.movie.id === match.quote.movieId);
+      if (existing && match.score > existing.confidence) {
+        existing.confidence = Math.max(existing.confidence, match.score);
+        existing.matchSource = "combined";
+        existing.matchedLine = match.quote.quote;
+      }
+      continue;
+    }
+
     const tmdbMovie = tmdbResults.find((m) => m.id === match.quote.movieId);
     if (tmdbMovie) {
       results.push({
         movie: tmdbMovie,
         confidence: match.score,
         matchSource: "combined",
+        matchedLine: match.quote.quote,
+        watchProviders: watchProvidersMap?.get(match.quote.movieId) ?? undefined,
       });
       seen.add(tmdbMovie.id);
     } else {
@@ -95,6 +146,7 @@ export function mergeResults(
         },
         confidence: match.score,
         matchSource: "quotes",
+        matchedLine: match.quote.quote,
       });
       seen.add(match.quote.movieId);
     }
@@ -104,8 +156,9 @@ export function mergeResults(
     if (!seen.has(movie.id)) {
       results.push({
         movie,
-        confidence: 0.3,
+        confidence: 0.2,
         matchSource: "tmdb",
+        watchProviders: watchProvidersMap?.get(movie.id) ?? undefined,
       });
       seen.add(movie.id);
     }
@@ -113,4 +166,15 @@ export function mergeResults(
 
   results.sort((a, b) => b.confidence - a.confidence);
   return results.slice(0, 10);
+}
+
+export function formatTimestamp(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
