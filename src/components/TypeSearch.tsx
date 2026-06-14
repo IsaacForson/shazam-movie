@@ -12,9 +12,7 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (text.trim().length > 2) {
-      onSearch(text.trim());
-    }
+    if (text.trim().length > 2) onSearch(text.trim());
   };
 
   const examples = [
@@ -27,39 +25,34 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
   ];
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-5">
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="relative">
+    <div className="w-full space-y-7">
+      <form onSubmit={handleSubmit}>
+        <div className="border border-line-strong bg-card focus-within:border-accent transition-colors">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type a movie quote or dialogue you remember..."
-            className="w-full bg-gray-900/60 border border-gray-700 rounded-xl p-4 pr-12 text-gray-200 text-sm placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 resize-none backdrop-blur-sm"
+            placeholder="“Well, nobody's perfect.”"
+            className="w-full bg-transparent p-5 font-serif text-xl text-ink placeholder:text-soft/60 focus:outline-none resize-none"
             rows={4}
           />
-          <button
-            type="submit"
-            disabled={text.trim().length < 3 || isSearching}
-            className="absolute bottom-3 right-3 w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-purple-500 transition-colors"
-          >
-            {isSearching ? (
-              <svg className="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          <div className="flex items-center justify-between border-t border-line px-4 py-3">
+            <span className="label text-soft">Any line, any film</span>
+            <button
+              type="submit"
+              disabled={text.trim().length < 3 || isSearching}
+              className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSearching ? "Searching…" : "Find the film"}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            ) : (
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            )}
-          </button>
+            </button>
+          </div>
         </div>
       </form>
 
       <div>
-        <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">
-          Try a famous quote
-        </p>
+        <p className="label text-soft mb-3">Or try one of these</p>
         <div className="flex flex-wrap gap-2">
           {examples.map((example) => (
             <button
@@ -69,9 +62,9 @@ export default function TypeSearch({ onSearch, isSearching }: TypeSearchProps) {
                 onSearch(example);
               }}
               disabled={isSearching}
-              className="px-3 py-1.5 rounded-full bg-gray-800/60 border border-gray-700/50 text-gray-400 text-xs hover:bg-purple-600/20 hover:border-purple-500/30 hover:text-purple-300 transition-all disabled:opacity-50"
+              className="px-3 py-1.5 rounded-full border border-line text-soft text-xs hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
             >
-              &ldquo;{example}&rdquo;
+              {example}
             </button>
           ))}
         </div>

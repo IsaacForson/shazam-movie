@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 
 interface LinkSectionProps {
   onTranscriptReady: (text: string) => void;
   isSearching: boolean;
 }
+
+const sources = ["YouTube", "TikTok", "Instagram", "Twitter / X", "Facebook"];
 
 export default function LinkSection({ onTranscriptReady, isSearching }: LinkSectionProps) {
   const [url, setUrl] = useState("");
@@ -30,71 +31,72 @@ export default function LinkSection({ onTranscriptReady, isSearching }: LinkSect
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to process link");
-      }
+      if (!res.ok) throw new Error(data.error || "Couldn't read that link");
 
       setTranscript(data.transcript);
       setStatus("done");
       onTranscriptReady(data.transcript);
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Failed to process link");
+      setError(err instanceof Error ? err.message : "Couldn't read that link");
     }
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-4">
-      <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-6 space-y-4">
-        <div>
-          <p className="text-gray-300 font-medium mb-1">Paste a video link</p>
-          <p className="text-gray-500 text-sm">
-            YouTube, TikTok, Instagram Reels, Twitter/X, Facebook
-          </p>
-        </div>
-
+    <div className="w-full space-y-6">
+      <div className="border border-line-strong bg-card focus-within:border-accent transition-colors flex items-center">
+        <span className="pl-4 text-soft">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.69a4.5 4.5 0 011.24 7.24l-4.5 4.5a4.5 4.5 0 01-6.36-6.36l1.76-1.76m13.35-.62l1.76-1.76a4.5 4.5 0 00-6.36-6.36l-4.5 4.5a4.5 4.5 0 001.24 7.24" />
+          </svg>
+        </span>
         <input
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://youtube.com/watch?v=..."
-          className="w-full bg-gray-800/60 border border-gray-700 rounded-lg px-4 py-3 text-gray-200 text-sm placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50"
+          placeholder="Paste a video link…"
+          className="flex-1 bg-transparent px-3 py-4 text-ink placeholder:text-soft/60 focus:outline-none"
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSubmit();
           }}
         />
-
         <button
           onClick={handleSubmit}
           disabled={!url.trim() || status === "loading" || isSearching}
-          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:from-purple-500 hover:to-indigo-500 transition-all"
+          className="self-stretch bg-ink text-paper px-5 text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {status === "loading" ? "Extracting & transcribing..." : "Identify Movie"}
+          {status === "loading" ? "Reading…" : "Identify"}
         </button>
-
-        {status === "loading" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-3"
-          >
-            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-gray-400 text-sm">Downloading audio and transcribing...</span>
-          </motion.div>
-        )}
-
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
-        )}
-
-        {transcript && status === "done" && (
-          <div className="bg-gray-800/40 rounded-lg p-3">
-            <p className="text-gray-500 text-xs mb-1">Transcript</p>
-            <p className="text-gray-200 text-sm">{transcript}</p>
-          </div>
-        )}
       </div>
+
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="label text-soft">Works with</span>
+        {sources.map((s) => (
+          <span key={s} className="text-xs text-soft">
+            {s}
+          </span>
+        ))}
+      </div>
+
+      {status === "loading" && (
+        <div className="flex items-center gap-3 border-l-2 border-accent pl-4 py-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+          <span className="label text-soft">Fetching audio and transcribing…</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="border border-accent/30 bg-accent-soft/50 px-4 py-3">
+          <p className="text-accent-deep text-sm">{error}</p>
+        </div>
+      )}
+
+      {transcript && status === "done" && (
+        <div className="border-l-2 border-accent pl-4 py-1">
+          <p className="label text-soft mb-1">Heard</p>
+          <p className="font-serif text-lg text-ink">{transcript}</p>
+        </div>
+      )}
     </div>
   );
 }

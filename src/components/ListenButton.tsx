@@ -13,58 +13,45 @@ export default function ListenButton({ isListening, onClick }: ListenButtonProps
       <div className="relative">
         {isListening && (
           <>
-            <motion.div
-              className="absolute inset-0 rounded-full bg-purple-500/20"
-              animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            <motion.span
+              className="absolute inset-0 rounded-full border border-accent/40"
+              animate={{ scale: [1, 1.7], opacity: [0.6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
             />
-            <motion.div
-              className="absolute inset-0 rounded-full bg-purple-500/15"
-              animate={{ scale: [1, 2.2, 1], opacity: [0.3, 0, 0.3] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-            />
-            <motion.div
-              className="absolute inset-0 rounded-full bg-purple-500/10"
-              animate={{ scale: [1, 2.6, 1], opacity: [0.2, 0, 0.2] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+            <motion.span
+              className="absolute inset-0 rounded-full border border-accent/30"
+              animate={{ scale: [1, 2.1], opacity: [0.45, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
             />
           </>
         )}
         <motion.button
           onClick={onClick}
-          whileTap={{ scale: 0.95 }}
-          className={`relative z-10 w-36 h-36 rounded-full flex items-center justify-center transition-all duration-300 ${
+          whileTap={{ scale: 0.96 }}
+          className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center border transition-colors duration-300 ${
             isListening
-              ? "bg-gradient-to-br from-purple-600 to-pink-600 shadow-[0_0_60px_rgba(168,85,247,0.5)]"
-              : "bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-[0_0_30px_rgba(168,85,247,0.3)]"
+              ? "bg-accent border-accent text-white"
+              : "bg-card border-line-strong text-ink hover:border-accent hover:text-accent"
           }`}
         >
           {isListening ? (
-            <motion.div className="flex items-center gap-1">
+            <span className="flex items-end gap-1 h-8">
               {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div
+                <motion.span
                   key={i}
                   className="w-1 bg-white rounded-full"
-                  animate={{
-                    height: [12, 28, 12],
-                  }}
+                  animate={{ height: [8, 28, 8] }}
                   transition={{
-                    duration: 0.6,
+                    duration: 0.7,
                     repeat: Infinity,
-                    delay: i * 0.1,
+                    delay: i * 0.12,
                     ease: "easeInOut",
                   }}
                 />
               ))}
-            </motion.div>
+            </span>
           ) : (
-            <svg
-              className="w-14 h-14 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
+            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -74,8 +61,8 @@ export default function ListenButton({ isListening, onClick }: ListenButtonProps
           )}
         </motion.button>
       </div>
-      <p className="text-gray-400 text-sm">
-        {isListening ? "Listening... tap to stop" : "Tap to start listening"}
+      <p className="label text-soft">
+        {isListening ? "Listening — tap to stop" : "Tap to listen"}
       </p>
     </div>
   );

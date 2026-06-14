@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  axes: ["opsz", "SOFT", "WONK"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "SceneSnap - Identify Movies from Scenes & Quotes",
-  description: "Like Shazam but for movies. Listen to a movie scene, upload a clip, or type a quote to instantly identify any movie.",
-  keywords: ["movie identifier", "scene recognition", "movie quotes", "shazam for movies"],
+  title: "Reel — Name the scene",
+  description:
+    "An almanac for half-remembered films. Speak a line, upload a clip, paste a link, or type a quote — and find the movie.",
+  keywords: ["movie identifier", "scene recognition", "movie quotes", "find a movie from a clip"],
 };
 
 export default function RootLayout({
@@ -26,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

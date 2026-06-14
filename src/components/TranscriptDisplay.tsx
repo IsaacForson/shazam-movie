@@ -19,26 +19,26 @@ export default function TranscriptDisplay({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-xl mx-auto"
+      className="w-full max-w-xl"
     >
-      <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
+      <div className="border-l-2 border-accent pl-4 py-1">
         <div className="flex items-center gap-2 mb-2">
-          <div className={`w-2 h-2 rounded-full ${isListening ? "bg-green-400 animate-pulse" : "bg-gray-500"}`} />
-          <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">
-            {isListening ? "Listening..." : "Transcript"}
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isListening ? "bg-accent animate-pulse" : "bg-line-strong"
+            }`}
+          />
+          <span className="label text-soft">
+            {isListening ? "Hearing" : "Heard"}
           </span>
         </div>
-        <p className="text-gray-200 text-sm leading-relaxed min-h-[2rem]">
+        <p className="font-serif text-xl text-ink leading-snug min-h-8">
           {transcript}
-          {interimTranscript && (
-            <span className="text-gray-500 italic">{interimTranscript}</span>
-          )}
+          {interimTranscript && <span className="text-soft italic"> {interimTranscript}</span>}
           {isListening && !hasContent && (
-            <span className="text-gray-600 italic">
-              Speak or play a movie clip near your microphone...
-            </span>
+            <span className="text-soft/70 italic">Play a clip near your microphone…</span>
           )}
         </p>
       </div>

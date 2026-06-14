@@ -10,14 +10,16 @@ import { useWatchlist } from "@/hooks/useWatchlist";
 interface MovieCardProps {
   result: SearchResult;
   index: number;
+  rank?: number;
   onClick: (result: SearchResult) => void;
 }
 
-export default function MovieCard({ result, index, onClick }: MovieCardProps) {
+export default function MovieCard({ result, index, rank, onClick }: MovieCardProps) {
   const { isSaved, toggle } = useWatchlist();
-  const saved = isSaved(result.movie.id);
   const { movie, confidence, matchSource, matchedLine, timestampMs, watchProviders } = result;
-  const year = movie.release_date?.split("-")[0] || "N/A";
+  const saved = isSaved(movie.id);
+
+  const year = movie.release_date?.split("-")[0] || "—";
   const genres = movie.genre_ids
     .slice(0, 2)
     .map((id) => GENRE_MAP[id])
@@ -27,147 +29,116 @@ export default function MovieCard({ result, index, onClick }: MovieCardProps) {
 
   const confidenceLabel =
     confidence >= 0.8
-      ? "High Match"
+      ? "Strong match"
       : confidence >= 0.5
-        ? "Good Match"
+        ? "Good match"
         : confidence >= 0.3
-          ? "Possible Match"
+          ? "Possible"
           : "Related";
 
-  const confidenceColor =
-    confidence >= 0.8
-      ? "text-green-400 bg-green-400/10"
-      : confidence >= 0.5
-        ? "text-blue-400 bg-blue-400/10"
-        : confidence >= 0.3
-          ? "text-yellow-400 bg-yellow-400/10"
-          : "text-gray-400 bg-gray-400/10";
-
   const hasDialogueMatch =
-    matchSource === "subtitles" ||
-    matchSource === "quotes" ||
-    matchSource === "combined";
+    matchSource === "subtitles" || matchSource === "quotes" || matchSource === "combined";
 
   const streamingProviders = watchProviders?.flatrate?.slice(0, 3) || [];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
+      transition={{ delay: index * 0.06, duration: 0.4 }}
       onClick={() => onClick(result)}
-      className="group cursor-pointer bg-gray-900/60 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-800 hover:border-purple-500/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]"
+      className="group cursor-pointer"
     >
-      <div className="relative aspect-[2/3] overflow-hidden">
+      <div className="relative aspect-2/3 overflow-hidden bg-paper-dim border border-line">
         {movie.poster_path ? (
           <Image
             src={posterUrl}
             alt={movie.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-            <svg className="w-16 h-16 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-            </svg>
+          <div className="w-full h-full grid place-items-center p-4">
+            <span className="font-serif text-center text-ink/40 leading-tight">{movie.title}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-        <div className="absolute top-2 right-2 flex items-center gap-1.5">
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${confidenceColor}`}>
-            {confidenceLabel}
+        {rank != null && (
+          <span className="absolute top-0 left-0 bg-paper text-ink font-mono text-xs px-2 py-1 border-r border-b border-line">
+            {String(rank).padStart(2, "0")}
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle(movie);
-            }}
-            aria-label={saved ? "Remove from watchlist" : "Add to watchlist"}
-            className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-              saved ? "bg-purple-600 text-white" : "bg-black/60 text-gray-300 hover:text-white"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill={saved ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-          </button>
-        </div>
+        )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle(movie);
+          }}
+          aria-label={saved ? "Remove from watchlist" : "Save to watchlist"}
+          className={`absolute top-0 right-0 w-9 h-9 grid place-items-center border-l border-b border-line transition-colors ${
+            saved ? "bg-accent text-white" : "bg-paper/90 text-ink hover:text-accent"
+          }`}
+        >
+          <svg className="w-4 h-4" fill={saved ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+        </button>
 
         {timestampMs != null && timestampMs > 0 && (
-          <div className="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded-full">
-            <span className="text-white text-[10px] font-mono">{formatTimestamp(timestampMs)}</span>
-          </div>
+          <span className="absolute bottom-0 left-0 bg-ink text-paper font-mono text-[11px] px-2 py-1">
+            {formatTimestamp(timestampMs)}
+          </span>
         )}
-
-        {rating && !timestampMs && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-full">
-            <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="text-white text-xs font-medium">{rating}</span>
-          </div>
-        )}
-
-        <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-white font-semibold text-sm leading-tight line-clamp-2">
-            {movie.title}
-          </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-gray-300 text-xs">{year}</span>
-            {genres.length > 0 && (
-              <>
-                <span className="text-gray-600">·</span>
-                <span className="text-gray-400 text-xs">{genres.join(", ")}</span>
-              </>
-            )}
-          </div>
-        </div>
       </div>
 
-      {(hasDialogueMatch || streamingProviders.length > 0) && (
-        <div className="px-3 py-2 border-t border-gray-800/50 space-y-1.5">
-          {matchedLine && (
-            <p className="text-gray-400 text-[11px] line-clamp-2 italic">
-              &ldquo;{matchedLine}&rdquo;
-            </p>
-          )}
-          {streamingProviders.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-gray-500 text-[10px]">Watch on</span>
-              {streamingProviders.map((p) => (
-                <span
-                  key={p.provider_id}
-                  className="text-purple-400 text-[10px] bg-purple-400/10 px-1.5 py-0.5 rounded"
-                >
-                  {p.provider_name}
-                </span>
-              ))}
-              {watchProviders?.link && (
-                <a
-                  href={withAffiliate(watchProviders.link)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-purple-400 text-[10px] hover:underline ml-auto"
-                >
-                  See all
-                </a>
-              )}
-            </div>
-          )}
-          {!matchedLine && hasDialogueMatch && (
-            <p className="text-purple-400 text-[11px] flex items-center gap-1">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-              </svg>
-              Matched by dialogue
-            </p>
-          )}
+      {/* Caption block */}
+      <div className="pt-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="font-serif text-lg leading-tight text-ink line-clamp-2 group-hover:text-accent transition-colors">
+            {movie.title}
+          </h3>
+          {rating && <span className="font-mono text-xs text-soft shrink-0">★ {rating}</span>}
         </div>
-      )}
+
+        <p className="text-xs text-soft mt-1">
+          {year}
+          {genres.length > 0 && <span> · {genres.join(", ")}</span>}
+        </p>
+
+        <div className="mt-2 h-px bg-line" />
+
+        <p className="label text-accent mt-2">{confidenceLabel}</p>
+
+        {matchedLine && (
+          <p className="text-xs text-soft italic mt-1.5 line-clamp-2">“{matchedLine}”</p>
+        )}
+
+        {!matchedLine && hasDialogueMatch && (
+          <p className="text-xs text-soft mt-1.5">Matched by dialogue</p>
+        )}
+
+        {streamingProviders.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap mt-2">
+            {streamingProviders.map((p) => (
+              <span key={p.provider_id} className="text-[10px] text-ink border border-line px-1.5 py-0.5">
+                {p.provider_name}
+              </span>
+            ))}
+            {watchProviders?.link && (
+              <a
+                href={withAffiliate(watchProviders.link)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-[10px] text-accent hover:underline ml-auto"
+              >
+                Where to watch →
+              </a>
+            )}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
