@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { extractAudioFromFile } from "@/lib/extract-audio";
 
-type TranscribeStatus = "idle" | "extracting" | "transcribing" | "done" | "error";
+type TranscribeStatus = "idle" | "transcribing" | "done" | "error";
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 interface UploadSectionProps {
   onTranscriptReady: (text: string) => void;
@@ -24,27 +25,20 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const transcribeFile = async (f: File) => {
-    setStatus("extracting");
-    setStatusMessage("Pulling the audio…");
+    setStatus("transcribing");
+    setStatusMessage("Transcribing the dialogue…");
     setError(null);
     setTranscript("");
 
     try {
-      const audioBlob = await extractAudioFromFile(f, (msg) => {
-        if (msg.includes("time=")) setStatusMessage("Pulling the audio…");
-      });
-
-      setStatus("transcribing");
-      setStatusMessage("Transcribing the dialogue…");
-
       const formData = new FormData();
-      formData.append("audio", audioBlob, "audio.mp3");
+      formData.append("audio", f, f.name);
 
       const res = await fetch("/api/transcribe", { method: "POST", body: formData });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Transcription failed");
+        throw new Error(data.error || "Couldn't transcribe. Type the line below.");
       }
 
       const data = await res.json();
@@ -64,6 +58,11 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
     if (!f.type.startsWith("video/") && !f.type.startsWith("audio/")) return;
     setFile(f);
     setVideoUrl(URL.createObjectURL(f));
+    if (f.size > MAX_FILE_SIZE) {
+      setStatus("error");
+      setError("Clip is too large (max 25MB). Trim it shorter, or type the line below.");
+      return;
+    }
     transcribeFile(f);
   };
 
@@ -89,7 +88,7 @@ export default function UploadSection({ onTranscriptReady, isSearching }: Upload
     setStatusMessage("");
   };
 
-  const isProcessing = status === "extracting" || status === "transcribing";
+  const isProcessing = status === "transcribing";
 
   return (
     <div className="w-full space-y-5">

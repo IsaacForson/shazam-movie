@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchQuotes, mergeResults } from "@/lib/search";
 import { searchSubtitles } from "@/lib/subtitle-search";
 import { getMoviesByIds, getMovieWatchProviders } from "@/lib/tmdb";
+import {
+  identifyMoviesFromText,
+  candidatesToResults,
+  hasLlmProvider,
+} from "@/lib/movie-llm";
 import { Movie, WatchProviders } from "@/types";
 
 function getRegion(request: NextRequest): string {
@@ -60,12 +65,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = mergeResults(
+    let results = mergeResults(
       subtitleMatches,
       quoteMatches,
       tmdbResults,
       watchProvidersMap
     );
+
+    // The local subtitle/quote corpus is small and misses recent or obscure
+    // films. When it finds nothing, fall back to a web-search-capable LLM that
+    // can identify the line of dialogue from across the internet.
+    if (results.length === 0 && hasLlmProvider()) {
+      try {
+        const candidates = await identifyMoviesFromText(trimmed);
+        results = await candidatesToResults(candidates, region, "web");
+      } catch (err) {
+        console.error("Web fallback error:", err);
+      }
+    }
 
     return NextResponse.json({
       results,

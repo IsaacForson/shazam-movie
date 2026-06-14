@@ -12,8 +12,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (audio.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "Audio file too large (max 25MB)" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Clip is too large (max 25MB). Try a shorter clip." },
+        { status: 400 }
+      );
     }
+
+    const filename = (audio as File).name || "audio.mp3";
 
     const apiKey = process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY;
     if (!apiKey) {
@@ -29,7 +34,7 @@ export async function POST(request: NextRequest) {
       : "https://api.openai.com/v1/audio/transcriptions";
 
     const whisperForm = new FormData();
-    whisperForm.append("file", audio, "audio.mp3");
+    whisperForm.append("file", audio, filename);
     whisperForm.append("model", useGroq ? "whisper-large-v3" : "whisper-1");
     whisperForm.append("language", "en");
     whisperForm.append("response_format", "json");
