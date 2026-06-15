@@ -15,6 +15,7 @@ import TypeSearch from "@/components/TypeSearch";
 import MovieModal from "@/components/MovieModal";
 import WatchlistPanel from "@/components/WatchlistPanel";
 import SearchModeToggle, { SearchMode } from "@/components/SearchModeToggle";
+import { track } from "@/lib/analytics";
 
 type Theme = "dark" | "light";
 
@@ -59,10 +60,15 @@ export default function Home() {
   const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => "dark");
   const { items: watchlistItems } = useWatchlist();
   const searchModeRef = useRef<SearchMode>("quote");
+  const modeRef = useRef<AppMode>("listen");
 
   useEffect(() => {
     searchModeRef.current = searchMode;
   }, [searchMode]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const {
     isListening,
@@ -86,6 +92,12 @@ export default function Home() {
     setIsSearching(true);
     setSearchError(null);
 
+    track("search_started", {
+      inputMode: modeRef.current,
+      searchMode: searchModeRef.current,
+      textLength: text.trim().length,
+    });
+
     try {
       const endpoint =
         searchModeRef.current === "describe" ? "/api/describe" : "/api/identify";
@@ -98,10 +110,21 @@ export default function Home() {
       if (!res.ok) throw new Error("Search failed");
 
       const data = await res.json();
-      setResults(data.results || []);
+      const found: SearchResult[] = data.results || [];
+      setResults(found);
       setHasSearched(true);
+      track("search_completed", {
+        inputMode: modeRef.current,
+        searchMode: searchModeRef.current,
+        resultCount: found.length,
+        topMatchSource: found[0]?.matchSource ?? null,
+      });
     } catch {
       setSearchError("Something went wrong. Please try again.");
+      track("search_failed", {
+        inputMode: modeRef.current,
+        searchMode: searchModeRef.current,
+      });
     } finally {
       setIsSearching(false);
     }
@@ -134,6 +157,7 @@ export default function Home() {
 
   const handleModeChange = (newMode: AppMode) => {
     if (isListening) stopListening();
+    track("mode_selected", { inputMode: newMode });
     setMode(newMode);
     setResults([]);
     setHasSearched(false);
@@ -143,6 +167,7 @@ export default function Home() {
   };
 
   const handleSearchModeChange = (next: SearchMode) => {
+    track("search_mode_changed", { searchMode: next });
     setSearchMode(next);
     setResults([]);
     setHasSearched(false);
@@ -360,7 +385,14 @@ export default function Home() {
                   result={result}
                   index={i}
                   rank={i + 1}
-                  onClick={setSelectedResult}
+                  onClick={(r) => {
+                    track("result_clicked", {
+                      movieTitle: r.movie.title,
+                      rank: i + 1,
+                      matchSource: r.matchSource,
+                    });
+                    setSelectedResult(r);
+                  }}
                 />
               ))}
             </div>
