@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppMode, SearchResult } from "@/types";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -18,6 +18,34 @@ import SearchModeToggle, { SearchMode } from "@/components/SearchModeToggle";
 
 type Theme = "dark" | "light";
 
+const THEME_EVENT = "reel-theme-change";
+
+function subscribeTheme(callback: () => void) {
+  window.addEventListener(THEME_EVENT, callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    window.removeEventListener(THEME_EVENT, callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function getThemeSnapshot(): Theme {
+  if (typeof document === "undefined") return "dark";
+  return document.documentElement.getAttribute("data-theme") === "light"
+    ? "light"
+    : "dark";
+}
+
+function applyTheme(theme: Theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try {
+    window.localStorage.setItem("reel-theme", theme);
+  } catch {
+    /* ignore storage failures (private mode, etc.) */
+  }
+  window.dispatchEvent(new Event(THEME_EVENT));
+}
+
 export default function Home() {
   const [mode, setMode] = useState<AppMode>("listen");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -28,22 +56,13 @@ export default function Home() {
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>("quote");
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
-    const storedTheme = window.localStorage.getItem("reel-theme");
-    return storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
-  });
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => "dark");
   const { items: watchlistItems } = useWatchlist();
   const searchModeRef = useRef<SearchMode>("quote");
 
   useEffect(() => {
     searchModeRef.current = searchMode;
   }, [searchMode]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem("reel-theme", theme);
-  }, [theme]);
 
   const {
     isListening,
@@ -132,7 +151,7 @@ export default function Home() {
   };
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    applyTheme(theme === "dark" ? "light" : "dark");
   };
 
   const quoteCopy: Record<AppMode, { kicker: string; line: string }> = {

@@ -39,20 +39,20 @@
  * Higher specificity (`:root[data-theme]`) guarantees it wins over @theme.
  */
 :root[data-theme="light"] {
-  --background: #f4eee2;
-  --foreground: #1b160f;
-  --color-paper: #f4eee2;
-  --color-paper-dim: #ece3d3;
+  --background: #f5f6f8;
+  --foreground: #16181d;
+  --color-paper: #f5f6f8;
+  --color-paper-dim: #eaecf1;
   --color-card: #ffffff;
-  --color-ink: #1b160f;
-  --color-muted: #463c30;
-  --color-soft: #6a5e4e;
-  --color-line: #d6c8b1;
-  --color-line-strong: #b9a88d;
-  --color-accent: #c0392b;
-  --color-accent-deep: #8f2a1e;
-  --color-accent-soft: #f6e2da;
-  --color-gold: #9a6a12;
+  --color-ink: #16181d;
+  --color-muted: #3f434c;
+  --color-soft: #646a76;
+  --color-line: #dcdfe6;
+  --color-line-strong: #c3c8d2;
+  --color-accent: #4f46e5;
+  --color-accent-deep: #3730a3;
+  --color-accent-soft: #e7e6fb;
+  --color-gold: #b45309;
 }
 
 body {
@@ -70,8 +70,8 @@ body {
 
 [data-theme="light"] body {
   background-image:
-    radial-gradient(110% 70% at 50% -18%, rgba(183, 61, 47, 0.08), transparent 56%),
-    radial-gradient(120% 120% at 50% 8%, transparent 50%, rgba(0, 0, 0, 0.03) 100%);
+    radial-gradient(110% 70% at 50% -18%, rgba(79, 70, 229, 0.07), transparent 56%),
+    radial-gradient(120% 120% at 50% 8%, transparent 50%, rgba(22, 24, 29, 0.03) 100%);
 }
 
 /* Film grain */
