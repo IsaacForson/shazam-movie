@@ -39,7 +39,7 @@ def extract_audio(req: ExtractRequest):
             "--audio-format", "mp3",
             "--audio-quality", "5",
             "--postprocessor-args", "ffmpeg:-ac 1 -ar 16000",
-            "--download-sections", "*0:90",
+            "--download-sections", "*0-90",
             "--max-filesize", "25M",
             "--no-playlist",
             "--quiet",
