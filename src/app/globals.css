@@ -1,17 +1,13 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0a0a0c;
-  --foreground: #f1ece1;
-}
-
-[data-theme="light"] {
-  --background: #f7f2e9;
-  --foreground: #1d1a16;
-}
-
-@theme inline {
-  /* Dark "theater" palette */
+/*
+ * NOTE: do NOT use `@theme inline` here. `inline` bakes the literal color
+ * values into every utility (e.g. `.text-ink { color: #f1ece1 }`), which means
+ * overriding the variables for light mode would have no effect. Plain `@theme`
+ * makes utilities reference `var(--color-*)`, so the light overrides below work.
+ */
+@theme {
+  /* Dark "theater" palette (default) */
   --color-paper: #0a0a0c;
   --color-paper-dim: #121116;
   --color-card: #17151c;
@@ -32,19 +28,31 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-[data-theme="light"] {
-  --color-paper: #f7f2e9;
-  --color-paper-dim: #eee6d8;
-  --color-card: #fffaf1;
-  --color-ink: #1d1a16;
-  --color-muted: #5a5046;
-  --color-soft: #75695f;
-  --color-line: #d9ccb9;
-  --color-line-strong: #c7b8a3;
-  --color-accent: #c54633;
-  --color-accent-deep: #9f3424;
-  --color-accent-soft: #f4d7cd;
-  --color-gold: #b98724;
+:root {
+  --background: #0a0a0c;
+  --foreground: #f1ece1;
+}
+
+/*
+ * Light "almanac" palette — override the same theme vars so every
+ * `text-ink` / `bg-card` / `border-line` utility flips automatically.
+ * Higher specificity (`:root[data-theme]`) guarantees it wins over @theme.
+ */
+:root[data-theme="light"] {
+  --background: #f4eee2;
+  --foreground: #1b160f;
+  --color-paper: #f4eee2;
+  --color-paper-dim: #ece3d3;
+  --color-card: #ffffff;
+  --color-ink: #1b160f;
+  --color-muted: #463c30;
+  --color-soft: #6a5e4e;
+  --color-line: #d6c8b1;
+  --color-line-strong: #b9a88d;
+  --color-accent: #c0392b;
+  --color-accent-deep: #8f2a1e;
+  --color-accent-soft: #f6e2da;
+  --color-gold: #9a6a12;
 }
 
 body {
@@ -62,9 +70,8 @@ body {
 
 [data-theme="light"] body {
   background-image:
-    radial-gradient(110% 70% at 50% -15%, rgba(197, 70, 51, 0.12), transparent 55%),
-    radial-gradient(80% 55% at 50% -10%, rgba(185, 135, 36, 0.08), transparent 60%),
-    radial-gradient(130% 130% at 50% 8%, transparent 45%, rgba(255, 255, 255, 0.5) 100%);
+    radial-gradient(110% 70% at 50% -18%, rgba(183, 61, 47, 0.08), transparent 56%),
+    radial-gradient(120% 120% at 50% 8%, transparent 50%, rgba(0, 0, 0, 0.03) 100%);
 }
 
 /* Film grain */
@@ -80,8 +87,8 @@ body::before {
 }
 
 [data-theme="light"] body::before {
-  opacity: 0.02;
-  mix-blend-mode: multiply;
+  opacity: 0.008;
+  mix-blend-mode: normal;
 }
 
 main {
@@ -98,6 +105,19 @@ main {
   letter-spacing: 0.18em;
   font-size: 0.7rem;
   font-weight: 500;
+}
+
+.bg-grad {
+  background-color: var(--color-accent);
+  background-image: linear-gradient(
+    135deg,
+    var(--color-accent),
+    color-mix(in srgb, var(--color-accent) 78%, #000)
+  );
+}
+
+.glow-btn {
+  box-shadow: 0 10px 26px -10px var(--color-accent);
 }
 
 ::-webkit-scrollbar {
