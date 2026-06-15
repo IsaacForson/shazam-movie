@@ -98,7 +98,7 @@ export default function MovieCard({ result, index, rank, onClick }: MovieCardPro
           <h3 className="font-serif text-lg leading-tight text-ink line-clamp-2 group-hover:text-accent transition-colors">
             {movie.title}
           </h3>
-          {rating && <span className="font-mono text-xs text-soft shrink-0">★ {rating}</span>}
+          {rating && <span className="font-mono text-xs text-gold shrink-0">★ {rating}</span>}
         </div>
 
         <p className="text-xs text-soft mt-1">

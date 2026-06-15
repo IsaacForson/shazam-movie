@@ -141,8 +141,12 @@ export default function Home() {
       <header className="border-b border-line">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="grid place-items-center w-8 h-8 rounded-full bg-ink text-paper font-serif text-lg leading-none pb-0.5">
-              R
+            <span className="relative grid place-items-center w-8 h-8 rounded-full border-2 border-accent text-accent">
+              <span className="absolute w-1.5 h-1.5 rounded-full bg-accent" />
+              <span className="absolute top-1 w-1 h-1 rounded-full bg-accent/70" />
+              <span className="absolute bottom-1 w-1 h-1 rounded-full bg-accent/70" />
+              <span className="absolute left-1 w-1 h-1 rounded-full bg-accent/70" />
+              <span className="absolute right-1 w-1 h-1 rounded-full bg-accent/70" />
             </span>
             <span className="font-serif text-xl tracking-tight text-ink">Reel</span>
           </div>
@@ -166,21 +170,30 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-5 sm:px-8 pt-14 pb-8">
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-end">
+      <section className="relative mx-auto max-w-6xl px-5 sm:px-8 pt-16 pb-8">
+        {/* projector beam */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-10 left-1/4 h-64 w-[60%] -translate-x-1/4 rounded-full bg-accent/10 blur-[120px]"
+        />
+        <div className="relative grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-end">
           <div>
-            <p className="label text-accent mb-5">An almanac for half-remembered films</p>
-            <h1 className="font-serif text-ink leading-[0.95] tracking-tight text-5xl sm:text-6xl lg:text-7xl">
+            <p className="label text-accent mb-5 flex items-center gap-2.5">
+              <span className="inline-block w-6 h-px bg-accent" />
+              Now showing — your half-remembered film
+            </p>
+            <h1 className="font-serif text-ink leading-[0.92] tracking-tight text-5xl sm:text-6xl lg:text-7xl">
               Name the
               <br />
-              <span className="italic">scene.</span>
+              <span className="italic text-accent">scene.</span>
             </h1>
           </div>
-          <p className="text-soft text-base sm:text-lg leading-relaxed max-w-md lg:pb-3">
+          <p className="text-muted text-base sm:text-lg leading-relaxed max-w-md lg:pb-3">
             You saw a clip. A line stuck. Speak it, drop the file, paste the link, or
             simply type what you remember — and Reel finds the film it came from.
           </p>
         </div>
+        <div className="filmstrip mt-12" />
       </section>
 
       {/* Mode selector */}
@@ -273,7 +286,7 @@ export default function Home() {
         {isSearching && (
           <div className="flex items-center gap-3 border-t border-line pt-6">
             <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span className="label text-soft">Searching the reels</span>
+            <span className="label text-soft">Rolling through the reels…</span>
           </div>
         )}
 

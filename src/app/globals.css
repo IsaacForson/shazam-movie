@@ -1,22 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3ede1;
-  --foreground: #1c1813;
+  --background: #0a0a0c;
+  --foreground: #f1ece1;
 }
 
 @theme inline {
-  --color-paper: #f3ede1;
-  --color-paper-dim: #ebe3d4;
-  --color-card: #fbf8f1;
-  --color-ink: #1c1813;
-  --color-muted: #6f6554;
-  --color-soft: #847a68;
-  --color-line: #ddd3c1;
-  --color-line-strong: #c8bca5;
-  --color-accent: #d2432a;
-  --color-accent-deep: #a8331e;
-  --color-accent-soft: #f1d8cf;
+  /* Dark "theater" palette */
+  --color-paper: #0a0a0c;
+  --color-paper-dim: #121116;
+  --color-card: #17151c;
+  --color-ink: #f1ece1;
+  --color-muted: #b7afa2;
+  --color-soft: #8a8276;
+  --color-line: #262430;
+  --color-line-strong: #3b3847;
+  --color-accent: #e64a36;
+  --color-accent-deep: #f2806f;
+  --color-accent-soft: #2a1612;
+  --color-gold: #e8b44b;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -26,21 +28,28 @@
 }
 
 body {
-  background: var(--background);
+  /* Projector spotlight glow at top + deep theater vignette */
+  background-color: var(--background);
+  background-image:
+    radial-gradient(110% 70% at 50% -15%, rgba(230, 74, 54, 0.12), transparent 55%),
+    radial-gradient(80% 55% at 50% -10%, rgba(232, 180, 75, 0.06), transparent 60%),
+    radial-gradient(130% 130% at 50% 8%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
   min-height: 100vh;
 }
 
-/* Subtle paper grain */
+/* Film grain */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
-  mix-blend-mode: multiply;
+  mix-blend-mode: screen;
 }
 
 main {
@@ -59,17 +68,31 @@ main {
   font-weight: 500;
 }
 
+/* Sprocket-hole film strip divider */
+.filmstrip {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-line-strong) 0,
+    var(--color-line-strong) 7px,
+    transparent 7px,
+    transparent 18px
+  );
+  height: 7px;
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-paper-dim);
+  background: var(--color-paper);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-line-strong);
-  border: 3px solid var(--color-paper-dim);
+  border: 3px solid var(--color-paper);
   border-radius: 999px;
 }
 

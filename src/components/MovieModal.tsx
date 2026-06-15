@@ -83,7 +83,7 @@ export default function MovieModal({ movieId, fallback, onClose }: MovieModalPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 backdrop-blur-sm p-4 sm:p-8"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/80 backdrop-blur-sm p-4 sm:p-8"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -176,7 +176,7 @@ export default function MovieModal({ movieId, fallback, onClose }: MovieModalPro
                         {data.details.vote_average > 0 && (
                           <>
                             <span>·</span>
-                            <span className="font-mono">★ {data.details.vote_average.toFixed(1)}</span>
+                            <span className="font-mono text-gold">★ {data.details.vote_average.toFixed(1)}</span>
                           </>
                         )}
                       </div>

@@ -21,7 +21,7 @@ export default function WatchlistPanel({ open, onClose, onSelect }: WatchlistPan
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
