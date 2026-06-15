@@ -73,12 +73,21 @@ export async function POST(request: NextRequest) {
     );
 
     // The local subtitle/quote corpus is small and misses recent or obscure
-    // films. When it finds nothing, fall back to a web-search-capable LLM that
-    // can identify the line of dialogue from across the internet.
-    if (results.length === 0 && hasLlmProvider()) {
+    // films. When it finds nothing — or only a weak/uncertain match — fall back
+    // to a web-search-capable LLM that can identify the line from across the
+    // internet, and prefer its answer over a low-confidence local guess.
+    const bestLocalConfidence = results[0]?.confidence ?? 0;
+    if ((results.length === 0 || bestLocalConfidence < 0.5) && hasLlmProvider()) {
       try {
         const candidates = await identifyMoviesFromText(trimmed);
-        results = await candidatesToResults(candidates, region, "web");
+        const llmResults = await candidatesToResults(candidates, region, "web");
+        if (llmResults.length > 0) {
+          const llmIds = new Set(llmResults.map((r) => r.movie.id));
+          results = [
+            ...llmResults,
+            ...results.filter((r) => !llmIds.has(r.movie.id)),
+          ].slice(0, 10);
+        }
       } catch (err) {
         console.error("Web fallback error:", err);
       }
