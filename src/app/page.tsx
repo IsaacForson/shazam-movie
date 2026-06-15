@@ -16,6 +16,8 @@ import MovieModal from "@/components/MovieModal";
 import WatchlistPanel from "@/components/WatchlistPanel";
 import SearchModeToggle, { SearchMode } from "@/components/SearchModeToggle";
 
+type Theme = "dark" | "light";
+
 export default function Home() {
   const [mode, setMode] = useState<AppMode>("listen");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -26,12 +28,22 @@ export default function Home() {
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>("quote");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
+    const storedTheme = window.localStorage.getItem("reel-theme");
+    return storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
+  });
   const { items: watchlistItems } = useWatchlist();
   const searchModeRef = useRef<SearchMode>("quote");
 
   useEffect(() => {
     searchModeRef.current = searchMode;
   }, [searchMode]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("reel-theme", theme);
+  }, [theme]);
 
   const {
     isListening,
@@ -119,6 +131,10 @@ export default function Home() {
     lastSearchedRef.current = "";
   };
 
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   const quoteCopy: Record<AppMode, { kicker: string; line: string }> = {
     listen: { kicker: "Hold it up", line: "Let the room do the talking." },
     upload: { kicker: "Drop a clip", line: "Spoken dialogue or narration — we'll listen." },
@@ -141,31 +157,35 @@ export default function Home() {
       <header className="border-b border-line">
         <div className="mx-auto max-w-6xl px-5 sm:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="relative grid place-items-center w-8 h-8 rounded-full border-2 border-accent text-accent">
-              <span className="absolute w-1.5 h-1.5 rounded-full bg-accent" />
-              <span className="absolute top-1 w-1 h-1 rounded-full bg-accent/70" />
-              <span className="absolute bottom-1 w-1 h-1 rounded-full bg-accent/70" />
-              <span className="absolute left-1 w-1 h-1 rounded-full bg-accent/70" />
-              <span className="absolute right-1 w-1 h-1 rounded-full bg-accent/70" />
+            <span className="grid place-items-center w-8 h-8 rounded-full bg-ink text-paper font-serif text-lg leading-none pb-0.5">
+              R
             </span>
             <span className="font-serif text-xl tracking-tight text-ink">Reel</span>
           </div>
 
-          <button
-            onClick={() => setWatchlistOpen(true)}
-            className="group flex items-center gap-2 text-ink/80 hover:text-accent transition-colors"
-          >
-            <span className="label">Watchlist</span>
-            <span
-              className={`grid place-items-center min-w-6 h-6 px-1.5 rounded-full text-xs font-medium ${
-                watchlistItems.length > 0
-                  ? "bg-accent text-white"
-                  : "bg-paper-dim text-soft border border-line"
-              }`}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className="label text-ink/80 hover:text-accent transition-colors"
             >
-              {watchlistItems.length}
-            </span>
-          </button>
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </button>
+            <button
+              onClick={() => setWatchlistOpen(true)}
+              className="group flex items-center gap-2 text-ink/80 hover:text-accent transition-colors"
+            >
+              <span className="label">Watchlist</span>
+              <span
+                className={`grid place-items-center min-w-6 h-6 px-1.5 rounded-full text-xs font-medium ${
+                  watchlistItems.length > 0
+                    ? "bg-accent text-white"
+                    : "bg-paper-dim text-soft border border-line"
+                }`}
+              >
+                {watchlistItems.length}
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -193,7 +213,6 @@ export default function Home() {
             simply type what you remember — and Reel finds the film it came from.
           </p>
         </div>
-        <div className="filmstrip mt-12" />
       </section>
 
       {/* Mode selector */}
@@ -203,18 +222,18 @@ export default function Home() {
 
       {/* Input panel */}
       <section className="mx-auto max-w-6xl px-5 sm:px-8 py-10">
-        <div className="grid lg:grid-cols-[0.42fr_0.58fr] gap-8 lg:gap-12 items-start">
-          {/* Left: mode copy */}
-          <div className="lg:sticky lg:top-10">
+        <div className="space-y-7">
+          <div>
             <p className="font-serif text-3xl sm:text-4xl text-ink leading-tight">
               {copy.kicker}
             </p>
-            <p className="text-soft mt-2 max-w-xs">{copy.line}</p>
+            <p className="text-soft mt-2">{copy.line}</p>
+            <div className="mt-5">
+              <SearchModeToggle value={searchMode} onChange={handleSearchModeChange} />
+            </div>
           </div>
 
-          {/* Right: the active input */}
-          <div className="min-h-56">
-            <SearchModeToggle value={searchMode} onChange={handleSearchModeChange} />
+          <div className="min-h-56 w-full">
             <AnimatePresence mode="wait">
               {mode === "listen" && (
                 <motion.div

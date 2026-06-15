@@ -5,6 +5,11 @@
   --foreground: #f1ece1;
 }
 
+[data-theme="light"] {
+  --background: #f7f2e9;
+  --foreground: #1d1a16;
+}
+
 @theme inline {
   /* Dark "theater" palette */
   --color-paper: #0a0a0c;
@@ -27,6 +32,21 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+[data-theme="light"] {
+  --color-paper: #f7f2e9;
+  --color-paper-dim: #eee6d8;
+  --color-card: #fffaf1;
+  --color-ink: #1d1a16;
+  --color-muted: #5a5046;
+  --color-soft: #75695f;
+  --color-line: #d9ccb9;
+  --color-line-strong: #c7b8a3;
+  --color-accent: #c54633;
+  --color-accent-deep: #9f3424;
+  --color-accent-soft: #f4d7cd;
+  --color-gold: #b98724;
+}
+
 body {
   /* Projector spotlight glow at top + deep theater vignette */
   background-color: var(--background);
@@ -40,6 +60,13 @@ body {
   min-height: 100vh;
 }
 
+[data-theme="light"] body {
+  background-image:
+    radial-gradient(110% 70% at 50% -15%, rgba(197, 70, 51, 0.12), transparent 55%),
+    radial-gradient(80% 55% at 50% -10%, rgba(185, 135, 36, 0.08), transparent 60%),
+    radial-gradient(130% 130% at 50% 8%, transparent 45%, rgba(255, 255, 255, 0.5) 100%);
+}
+
 /* Film grain */
 body::before {
   content: "";
@@ -50,6 +77,11 @@ body::before {
   pointer-events: none;
   z-index: 0;
   mix-blend-mode: screen;
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.02;
+  mix-blend-mode: multiply;
 }
 
 main {
@@ -66,20 +98,6 @@ main {
   letter-spacing: 0.18em;
   font-size: 0.7rem;
   font-weight: 500;
-}
-
-/* Sprocket-hole film strip divider */
-.filmstrip {
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--color-line-strong) 0,
-    var(--color-line-strong) 7px,
-    transparent 7px,
-    transparent 18px
-  );
-  height: 7px;
-  border-radius: 2px;
-  opacity: 0.5;
 }
 
 ::-webkit-scrollbar {

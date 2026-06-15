@@ -20,44 +20,42 @@ export default function TypeSearch({ onSearch, isSearching, mode = "quote" }: Ty
 
   const placeholder = describing
     ? "A man is locked in a high-tech prison and has to break out…"
-    : "“Well, nobody's perfect.”";
+    : "“Why so serious?”";
 
   const examples = describing
     ? [
-        "A man relives the same day over and over in a small snowy town",
-        "Toys come to life when their owner leaves the room",
+        "A man relives the same day over and over",
+        "Toys come to life when their owner leaves",
         "A team enters dreams to plant an idea",
-        "A shark terrorizes a small beach town one summer",
+        "A shark terrorizes a small beach town",
       ]
     : [
         "I'm gonna make him an offer he can't refuse",
-        "Why so serious",
         "May the force be with you",
         "You shall not pass",
         "I see dead people",
-        "Life is like a box of chocolates",
       ];
 
   return (
-    <div className="w-full space-y-7">
+    <div className="w-full space-y-5">
       <form onSubmit={handleSubmit}>
-        <div className="border border-line-strong bg-card focus-within:border-accent transition-colors">
+        <div className="rounded-2xl border border-line-strong bg-paper-dim/60 transition-colors focus-within:border-accent">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-transparent p-5 font-serif text-xl text-ink placeholder:text-soft/60 focus:outline-none resize-none"
-            rows={4}
+            className="w-full resize-none bg-transparent p-4 text-base text-ink placeholder:text-soft/70 focus:outline-none"
+            rows={3}
           />
-          <div className="flex items-center justify-between border-t border-line px-4 py-3">
-            <span className="label text-soft">{describing ? "The plot, in your words" : "Any line, any film"}</span>
+          <div className="flex items-center justify-between px-3 pb-3">
+            <span className="text-xs text-soft">{describing ? "The plot, in your words" : "Any line, any film"}</span>
             <button
               type="submit"
               disabled={text.trim().length < 3 || isSearching}
-              className="inline-flex items-center gap-2 bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-grad glow-btn inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
             >
-              {isSearching ? "Searching…" : "Find the film"}
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              {isSearching ? "Searching…" : "Find film"}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </button>
@@ -65,23 +63,20 @@ export default function TypeSearch({ onSearch, isSearching, mode = "quote" }: Ty
         </div>
       </form>
 
-      <div>
-        <p className="label text-soft mb-3">{describing ? "Or try a description" : "Or try one of these"}</p>
-        <div className="flex flex-wrap gap-2">
-          {examples.map((example) => (
-            <button
-              key={example}
-              onClick={() => {
-                setText(example);
-                onSearch(example);
-              }}
-              disabled={isSearching}
-              className="px-3 py-1.5 rounded-full border border-line text-soft text-xs hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
-            >
-              {example}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {examples.map((example) => (
+          <button
+            key={example}
+            onClick={() => {
+              setText(example);
+              onSearch(example);
+            }}
+            disabled={isSearching}
+            className="rounded-full border border-line bg-card/60 px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-50 cursor-pointer"
+          >
+            {example}
+          </button>
+        ))}
       </div>
     </div>
   );

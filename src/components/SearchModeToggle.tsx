@@ -16,8 +16,7 @@ const options: { key: SearchMode; label: string; hint: string }[] = [
 
 export default function SearchModeToggle({ value, onChange }: SearchModeToggleProps) {
   return (
-    <div className="mb-7">
-      <p className="label text-soft mb-2">What have you got?</p>
+    <div>
       <div className="inline-flex border border-line-strong bg-card">
         {options.map((opt) => {
           const active = value === opt.key;
